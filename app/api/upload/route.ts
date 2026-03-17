@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 
-cloudinary.config(); // usa CLOUDINARY_URL
+cloudinary.config();
 
 export async function POST(request) {
   try {
