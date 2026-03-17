@@ -23,7 +23,10 @@ export async function POST(request: Request) {
     const result: any = await new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { folder: "blacks" },
+          {
+            folder: "blacks",
+            resource_type: "auto", // 🔥 ESTA LÍNEA ARREGLA TODO
+          },
           (error, result) => {
             if (error) reject(error);
             else resolve(result);
