@@ -1,8 +1,20 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+
 export const runtime = "nodejs";
 
 export async function GET() {
-  const [rows] = await db.query("SELECT * FROM hero");
-  return NextResponse.json(rows);
+  try {
+    const [rows] = await db.query("SELECT 1");
+
+    return NextResponse.json({
+      ok: true,
+      result: rows
+    });
+  } catch (error) {
+    return NextResponse.json({
+      ok: false,
+      error: error.message
+    });
+  }
 }
