@@ -1,42 +1,40 @@
-import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
 
-export async function POST(request: Request) {
+cloudinary.config(); // usa CLOUDINARY_URL
+
+export async function POST(request) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get("file");
 
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+      return NextResponse.json(
+        { error: "No file uploaded" },
+        { status: 400 }
+      );
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Crear nombre único para el archivo
-    const timestamp = Date.now();
-    const originalName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-    const filename = `${timestamp}-${originalName}`;
-    
-    // Asegurar que el directorio existe
-    const uploadDir = path.join(process.cwd(), 'public/uploads');
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      // El directorio ya existe
-    }
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: "blacks" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(buffer);
+    });
 
-    // Guardar el archivo
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
+    return NextResponse.json({ url: result.secure_url });
 
-    // Retornar la URL pública
-    const imageUrl = `/uploads/${filename}`;
-    
-    return NextResponse.json({ url: imageUrl });
   } catch (error) {
-    console.error('Error uploading file:', error);
-    return NextResponse.json({ error: 'Error uploading file' }, { status: 500 });
+    console.error("Error uploading file:", error);
+    return NextResponse.json(
+      { error: "Error uploading file" },
+      { status: 500 }
+    );
   }
 }
