@@ -75,10 +75,14 @@ export default function ProductoDetalle() {
     const media = [];
     const urlsVistas = new Set(); // Para evitar duplicados
     
-    // Función para normalizar URLs (quitar / inicial para comparar)
     const normalizarUrl = (url: string) => {
-      return url.startsWith('/') ? url.substring(1) : url;
-    };
+  if (!url) return url;
+
+  // 👉 Si es URL externa (Cloudinary), no tocar
+  if (url.startsWith('http')) return url;
+
+  return url.startsWith('/') ? url.substring(1) : url;
+};
     
     // Imagen principal - guardamos la versión original para mostrar
     if (product.imagen) {
@@ -98,7 +102,11 @@ export default function ProductoDetalle() {
           // Verificar si ya existe (comparando sin la / inicial)
           if (!urlsVistas.has(urlNormalizada)) {
             // Asegurar que la URL tenga / al inicio para mostrarla
-            const urlParaMostrar = url.startsWith('/') ? url : `/${url}`;
+            const urlParaMostrar = url.startsWith('http')
+  ? url
+  : url.startsWith('/')
+  ? url
+  : `/${url}`;
             media.push({ type: 'image', url: urlParaMostrar });
             urlsVistas.add(urlNormalizada);
             console.log('Imagen adicional añadida:', urlParaMostrar);
@@ -115,7 +123,11 @@ export default function ProductoDetalle() {
         if (url && typeof url === 'string') {
           const urlNormalizada = normalizarUrl(url);
           if (!urlsVistas.has(urlNormalizada)) {
-            const urlParaMostrar = url.startsWith('/') ? url : `/${url}`;
+            const urlParaMostrar = url.startsWith('http')
+  ? url
+  : url.startsWith('/')
+  ? url
+  : `/${url}`;
             media.push({ type: 'video', url: urlParaMostrar });
             urlsVistas.add(urlNormalizada);
           }

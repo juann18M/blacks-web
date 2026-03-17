@@ -50,11 +50,15 @@ export async function GET(
       );
     }
 
-    // Función para normalizar URLs (agregar / al inicio si no tiene)
     const normalizarUrl = (url: string): string => {
-      if (!url) return url;
-      return url.startsWith('/') ? url : `/${url}`;
-    };
+  if (!url) return url;
+
+  // 👉 SI ya es URL completa (Cloudinary), NO tocar
+  if (url.startsWith('http')) return url;
+
+  // 👉 solo para imágenes locales
+  return url.startsWith('/') ? url : `/${url}`;
+};
 
     // Parsear los campos JSON para cada producto
     const productoParseado = {
