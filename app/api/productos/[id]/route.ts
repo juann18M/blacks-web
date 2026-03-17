@@ -244,8 +244,7 @@ export async function PUT(
         cantidad_mayoreo_2 = ?,
         precio_mayoreo_3 = ?,
         cantidad_mayoreo_3 = ?
-      WHERE id = ?
-      `,
+      WHERE id = ?`,
       [
         nombre,
         descripcion || null,
@@ -281,6 +280,42 @@ export async function PUT(
     console.error("Error en PUT /api/productos/[id]:", error);
     return NextResponse.json(
       { error: "Error al actualizar el producto" },
+      { status: 500 }
+    );
+  }
+}
+
+// ✅ AÑADIDO EL DELETE
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    console.log("🧨 Eliminando producto ID:", id);
+
+    // Opción 1: eliminar completamente
+    await db.query(
+      `DELETE FROM productos WHERE id = ?`,
+      [id]
+    );
+
+    // 🔥 OPCIÓN 2 (MEJOR): soft delete
+    // await db.query(
+    //   `UPDATE productos SET activo = false WHERE id = ?`,
+    //   [id]
+    // );
+
+    return NextResponse.json({
+      message: "Producto eliminado correctamente",
+    });
+
+  } catch (error) {
+    console.error("🔥 Error en DELETE:", error);
+
+    return NextResponse.json(
+      { error: "Error al eliminar el producto" },
       { status: 500 }
     );
   }
