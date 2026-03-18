@@ -9,11 +9,22 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Tag } from 'lucide-react';
 
-// ✅ 1. Mover getImageSrc FUERA del componente o al inicio del componente
+// ✅ Función mejorada para manejar imágenes de Cloudinary y locales
 const getImageSrc = (url?: string) => {
   if (!url) return '/placeholder.jpg';
-  if (url.startsWith('http')) return url;
-  return url.startsWith('/') ? url : `/${url}`;
+  
+  // Si es URL de Cloudinary o cualquier http
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Si ya es ruta absoluta
+  if (url.startsWith('/')) {
+    return url;
+  }
+  
+  // Si es nombre de archivo, asumimos que está en /uploads/
+  return `/uploads/${url}`;
 };
 
 export default function CartPage() {
@@ -22,6 +33,7 @@ export default function CartPage() {
   
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [tieneDescuentos, setTieneDescuentos] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const hayDescuentos = cart.some(item => item.precio_original && item.precio_original > (item.precio || 0));
@@ -38,6 +50,10 @@ export default function CartPage() {
     router.push('/checkout');
   };
 
+  const handleImageError = (key: string) => {
+    setImageErrors(prev => ({ ...prev, [key]: true }));
+  };
+
   // Calcular subtotal con validación
   const subtotal = cart.reduce((acc, item) => {
     const precio = item.precio || 0;
@@ -47,7 +63,7 @@ export default function CartPage() {
 
   const totalItems = cart.reduce((acc, item) => acc + (item.cantidad || 0), 0);
   
-  // Calcular ahorro total con validación - ✅ AHORA SIN la función getImageSrc
+  // Calcular ahorro total con validación
   const ahorroTotal = cart.reduce((acc, item) => {
     if (item.precio_original && item.precio_original > (item.precio || 0)) {
       const precioOriginal = item.precio_original || 0;
@@ -87,16 +103,26 @@ export default function CartPage() {
                   const precioActualTotal = precioActual * cantidad;
                   const tieneDescuento = precioOriginalTotal > precioActualTotal;
                   const ahorroItem = precioOriginalTotal - precioActualTotal;
+                  const imageKey = `${item.id}-${item.talla}`;
                   
                   return (
-                    <div key={`${item.id}-${item.talla}`} className={`flex gap-6 pb-6 ${tieneDescuento ? 'border-b border-green-200' : 'border-b border-gray-100'}`}>
+                    <div key={imageKey} className={`flex gap-6 pb-6 ${tieneDescuento ? 'border-b border-green-200' : 'border-b border-gray-100'}`}>
                       <div className="w-24 h-32 relative bg-gray-50">
-                        <Image 
-                          src={getImageSrc(item.imagen)} // ✅ AHORA SÍ FUNCiona porque getImageSrc está definida arriba
-                          alt={item.nombre || 'Producto'} 
-                          fill 
-                          className="object-contain p-2" 
-                        />
+                        {imageErrors[imageKey] ? (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-[10px] text-center p-2">
+                            Imagen no disponible
+                          </div>
+                        ) : (
+                          <Image 
+                            src={getImageSrc(item.imagen)}
+                            alt={item.nombre || 'Producto'}
+                            fill
+                            className="object-contain p-2"
+                            onError={() => handleImageError(imageKey)}
+                            sizes="(max-width: 768px) 96px, 96px"
+                            unoptimized={item.imagen?.includes('cloudinary.com')}
+                          />
+                        )}
                       </div>
 
                       <div className="flex flex-col justify-between flex-1 py-1">
@@ -172,30 +198,32 @@ export default function CartPage() {
 
               {/* RESUMEN */}
               <div className="bg-gray-50 border border-gray-100 p-8 sticky top-32">
-                <h3 className="text-sm font-medium uppercase tracking-widest mb-6 border-b border-gray-200 pb-4">Resumen de Compra</h3>
+                <h3 className="text-sm font-medium uppercase tracking-widest mb-6 border-b border-gray-200 pb-4">Resumen de compra</h3>
 
                 <div className="space-y-4 mb-6">
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Subtotal</span>
-                    <span>MXN {subtotal.toLocaleString('es-MX')}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">MXN {subtotal.toLocaleString('es-MX')}</span>
                   </div>
                   
                   {ahorroTotal > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                      <span className="flex items-center gap-1"><Tag size={12} /> Ahorro por mayoreo</span>
-                      <span>- MXN {ahorroTotal.toLocaleString('es-MX')}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="flex items-center gap-1 text-green-600">
+                        <Tag size={12} /> Ahorro por mayoreo
+                      </span>
+                      <span className="text-green-600 font-medium">- MXN {ahorroTotal.toLocaleString('es-MX')}</span>
                     </div>
                   )}
                   
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Envío</span>
-                    <span>Calculado al pagar</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Envío</span>
+                    <span className="text-gray-500">Calculado al pagar</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between text-base font-semibold border-t border-gray-200 pt-4 mb-8">
                   <span>Total</span>
-                  <span>MXN {subtotal.toLocaleString('es-MX')}</span>
+                  <span>MXN {(subtotal - ahorroTotal).toLocaleString('es-MX')}</span>
                 </div>
 
                 <button 
@@ -205,7 +233,7 @@ export default function CartPage() {
                     isRedirecting ? 'bg-zinc-300 text-zinc-500 cursor-not-allowed' : 'bg-black text-white hover:bg-zinc-800'
                   }`}
                 >
-                  {isRedirecting ? 'Procesando...' : 'Proceder con el Pago'}
+                  {isRedirecting ? 'Procesando...' : 'Proceder con el pago'}
                 </button>
               </div>
             </div>
