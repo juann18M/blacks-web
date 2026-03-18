@@ -1,20 +1,45 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+
 export const runtime = "nodejs";
 
-let heroData = {
-  titulo: "NEW COLLECTION",
-  subtitulo: "PRIMAVERA / VERANO 2026",
-  imagen: "/hero.jpg",
-  boton_1_texto: "VER MUJER",
-  boton_2_texto: "VER HOMBRE"
-}
-
 export async function GET() {
-  return NextResponse.json(heroData)
+  try {
+    const [rows]: any = await db.query("SELECT * FROM hero LIMIT 1");
+
+    if (rows.length === 0) {
+      return NextResponse.json({});
+    }
+
+    return NextResponse.json(rows[0]);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Error al obtener hero" }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request) {
-  const data = await request.json()
-  heroData = { ...heroData, ...data }
-  return NextResponse.json(heroData)
+  try {
+    const data = await request.json();
+
+    await db.query(
+      `UPDATE hero SET 
+        titulo = ?, 
+        subtitulo = ?, 
+        imagen = ?, 
+        imagen_mobile = ?
+      WHERE id = 1`,
+      [
+        data.titulo,
+        data.subtitulo,
+        data.imagen,
+        data.imagen_mobile,
+      ]
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Error al actualizar hero" }, { status: 500 });
+  }
 }
