@@ -1,10 +1,7 @@
-// app/api/editorial/route.js - VERSIÓN SOLO LECTURA
 import { NextResponse } from 'next/server'
-
 export const runtime = "nodejs";
 
-// Datos estáticos (solo lectura)
-const EDITORIAL_DATA = {
+let editorialData = {
   bloque1_imagen: "/editorial1.jpg",
   bloque1_titulo: "NUEVA TEMPORADA",
   bloque1_descripcion: "Siluetas limpias y materiales premium diseñados para la nueva colección primavera verano.",
@@ -17,18 +14,11 @@ const EDITORIAL_DATA = {
 }
 
 export async function GET() {
-  return NextResponse.json(EDITORIAL_DATA, {
-    headers: {
-      'Cache-Control': 'no-store, must-revalidate',
-      'Pragma': 'no-cache'
-    }
-  })
+  return NextResponse.json(editorialData)
 }
 
-// Elimina el PATCH o déjalo así:
-export async function PATCH() {
-  return NextResponse.json(
-    { error: 'Operación no soportada en producción' },
-    { status: 400 }
-  )
+export async function PATCH(request: Request) {
+  const data = await request.json()
+  editorialData = { ...editorialData, ...data }
+  return NextResponse.json(editorialData)
 }
