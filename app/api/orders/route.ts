@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 export const runtime = "nodejs";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "@/lib/auth"; // ✅ IMPORTAR EL MISMO SECRET
 
 // ==================== POST (CREAR ORDEN) ====================
 export async function POST(req: Request) {
@@ -30,10 +31,13 @@ export async function POST(req: Request) {
     let decoded: any;
 
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    } catch {
+      // ✅ USAR EL MISMO JWT_SECRET QUE EN LOGIN
+      decoded = jwt.verify(token, JWT_SECRET);
+      console.log("Token verificado para usuario:", decoded.email || decoded.id);
+    } catch (error) {
+      console.error("Error verificando token:", error);
       return NextResponse.json(
-        { error: "Token inválido" },
+        { error: "Token inválido o expirado" },
         { status: 401 }
       );
     }
@@ -87,21 +91,18 @@ export async function POST(req: Request) {
 
       // ========== NOTIFICAR AL ADMIN SOBRE NUEVO PEDIDO ==========
       try {
-        // Obtener la URL base
         const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
         
-        // Llamada interna para actualizar el último ID (no bloqueante)
         fetch(`${baseUrl}/api/admin/pedidos/ultimo`, {
           method: 'POST',
           headers: {
-            'Authorization': authHeader, // Reutilizar el mismo token
+            'Authorization': authHeader,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ orderId })
         }).catch(err => console.error('Error notificando nuevo pedido:', err));
       } catch (notifyError) {
         console.error('Error notificando:', notifyError);
-        // No afecta la respuesta al usuario
       }
       // ==========================================================
 
@@ -211,7 +212,8 @@ async function getUserOrders(req: Request) {
     let decoded: any;
 
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!);
+      // ✅ USAR EL MISMO JWT_SECRET TAMBIÉN AQUÍ
+      decoded = jwt.verify(token, JWT_SECRET);
     } catch {
       return NextResponse.json(
         { error: "Token inválido" },

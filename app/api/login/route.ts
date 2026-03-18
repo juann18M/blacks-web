@@ -3,8 +3,7 @@ import { db } from '@/lib/db';
 export const runtime = "nodejs";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = 'super_secret_key'; // luego lo pondremos en .env
+import { JWT_SECRET } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
@@ -42,15 +41,24 @@ export async function POST(req: Request) {
       );
     }
 
-    // Crear token
+    // Crear token USANDO EL MISMO SECRET
     const token = jwt.sign(
       { id: user.id, email: user.email },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
+    // También enviar información del usuario
     return NextResponse.json(
-      { message: 'Login exitoso', token },
+      { 
+        message: 'Login exitoso', 
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          nombre: user.nombre
+        }
+      },
       { status: 200 }
     );
   } catch (error) {
