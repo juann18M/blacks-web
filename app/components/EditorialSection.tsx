@@ -36,7 +36,6 @@ export default function EditorialSection() {
     bloque3: false
   });
 
-  // Cargar datos al inicio
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -44,33 +43,31 @@ export default function EditorialSection() {
         const cached = localStorage.getItem('editorialData');
         if (cached) {
           setEditorialData(JSON.parse(cached));
+        } else {
+          // Si no hay cache, usar datos por defecto
+          localStorage.setItem('editorialData', JSON.stringify(DEFAULT_DATA));
         }
 
-        // Luego intentar cargar de la API
+        // Opcional: cargar de la API (solo lectura)
         const res = await axios.get('/api/editorial');
         setEditorialData(res.data);
         localStorage.setItem('editorialData', JSON.stringify(res.data));
       } catch (error) {
         console.error('Error cargando datos editoriales:', error);
-        // Si hay error, mantener los datos por defecto o los del cache
       }
     };
 
     loadData();
   }, []);
 
-  // Manejador de errores de imagen
   const handleImageError = (bloque: 'bloque1' | 'bloque2' | 'bloque3') => {
     setImageErrors(prev => ({ ...prev, [bloque]: true }));
   };
 
-  // Función para obtener la URL de la imagen con fallback
   const getImageUrl = (bloque: 'bloque1' | 'bloque2' | 'bloque3', originalUrl?: string) => {
     if (imageErrors[bloque] || !originalUrl) {
-      // Fallback a una imagen por defecto si hay error
-      return '/placeholder.jpg'; // Asegúrate de tener esta imagen en public/
+      return '/placeholder.jpg';
     }
-    // Agregar timestamp para evitar caché del navegador
     return `${originalUrl}?t=${Date.now()}`;
   };
 
@@ -84,41 +81,16 @@ export default function EditorialSection() {
             <img
               src={getImageUrl('bloque1', editorialData.bloque1_imagen)}
               onError={() => handleImageError('bloque1')}
-              className="
-                w-auto
-                max-h-[220px]
-                sm:max-h-[250px]
-                md:max-h-[420px]
-                object-contain
-                transition-all duration-500 ease-in-out
-              "
+              className="w-auto max-h-[220px] sm:max-h-[250px] md:max-h-[420px] object-contain transition-all duration-500 ease-in-out"
               alt={editorialData.bloque1_titulo || "Editorial image 1"}
             />
           </div>
 
           <div className="space-y-4">
-            <h2 className="
-              text-2xl
-              sm:text-3xl
-              md:text-6xl
-              font-light
-              leading-tight
-              tracking-tight
-              transition-all duration-300
-            ">
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-light leading-tight tracking-tight transition-all duration-300">
               {editorialData.bloque1_titulo}
             </h2>
-
-            <p className="
-              text-gray-600
-              text-xs
-              sm:text-sm
-              md:text-xl
-              leading-relaxed
-              max-w-xs
-              md:max-w-md
-              transition-all duration-300
-            ">
+            <p className="text-gray-600 text-xs sm:text-sm md:text-xl leading-relaxed max-w-xs md:max-w-md transition-all duration-300">
               {editorialData.bloque1_descripcion}
             </p>
           </div>
@@ -129,38 +101,15 @@ export default function EditorialSection() {
           <img
             src={getImageUrl('bloque2', editorialData.bloque2_imagen)}
             onError={() => handleImageError('bloque2')}
-            className="
-              w-auto
-              max-h-[230px]
-              sm:max-h-[260px]
-              md:max-h-[460px]
-              object-contain
-              transition-all duration-500 ease-in-out
-            "
+            className="w-auto max-h-[230px] sm:max-h-[260px] md:max-h-[460px] object-contain transition-all duration-500 ease-in-out"
             alt={editorialData.bloque2_titulo || "Editorial image 2"}
           />
 
           <div className="space-y-4 max-w-xs sm:max-w-md md:max-w-2xl">
-            <h2 className="
-              text-2xl
-              sm:text-3xl
-              md:text-6xl
-              font-light
-              tracking-tight
-              leading-tight
-              transition-all duration-300
-            ">
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-light tracking-tight leading-tight transition-all duration-300">
               {editorialData.bloque2_titulo}
             </h2>
-
-            <p className="
-              text-gray-600
-              text-xs
-              sm:text-sm
-              md:text-xl
-              leading-relaxed
-              transition-all duration-300
-            ">
+            <p className="text-gray-600 text-xs sm:text-sm md:text-xl leading-relaxed transition-all duration-300">
               {editorialData.bloque2_descripcion}
             </p>
           </div>
@@ -169,28 +118,10 @@ export default function EditorialSection() {
         {/* BLOQUE 3 */}
         <div className="grid grid-cols-2 gap-6 md:gap-16 items-center">
           <div className="space-y-4">
-            <h2 className="
-              text-2xl
-              sm:text-3xl
-              md:text-6xl
-              font-light
-              leading-tight
-              tracking-tight
-              transition-all duration-300
-            ">
+            <h2 className="text-2xl sm:text-3xl md:text-6xl font-light leading-tight tracking-tight transition-all duration-300">
               {editorialData.bloque3_titulo}
             </h2>
-
-            <p className="
-              text-gray-600
-              text-xs
-              sm:text-sm
-              md:text-xl
-              leading-relaxed
-              max-w-xs
-              md:max-w-md
-              transition-all duration-300
-            ">
+            <p className="text-gray-600 text-xs sm:text-sm md:text-xl leading-relaxed max-w-xs md:max-w-md transition-all duration-300">
               {editorialData.bloque3_descripcion}
             </p>
           </div>
@@ -199,14 +130,7 @@ export default function EditorialSection() {
             <img
               src={getImageUrl('bloque3', editorialData.bloque3_imagen)}
               onError={() => handleImageError('bloque3')}
-              className="
-                w-auto
-                max-h-[220px]
-                sm:max-h-[250px]
-                md:max-h-[420px]
-                object-contain
-                transition-all duration-500 ease-in-out
-              "
+              className="w-auto max-h-[220px] sm:max-h-[250px] md:max-h-[420px] object-contain transition-all duration-500 ease-in-out"
               alt={editorialData.bloque3_titulo || "Editorial image 3"}
             />
           </div>
