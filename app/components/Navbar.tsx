@@ -338,7 +338,7 @@ export default function Navbar() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar..."
               className="w-full text-center text-[15px] text-gray-500 bg-transparent outline-none py-2 border-b border-transparent focus:border-gray-200 transition-colors"
-              autoFocus
+            
             />
           </form>
         </div>
