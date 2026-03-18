@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -29,6 +29,15 @@ export default function CheckoutPage() {
     if (cart.length === 0) router.push("/cart");
   }, [cart, router]);
 
+  // ✅ Verificar token al cargar la página
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError("SESIÓN EXPIRADA - INICIA SESIÓN NUEVAMENTE");
+      setTimeout(() => router.push('/login'), 2000);
+    }
+  }, [router]);
+
   const total = cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
   const shippingCost = shippingMethod === "express" ? 149 : 99;
   const totalWithShipping = total + shippingCost;
@@ -48,8 +57,16 @@ export default function CheckoutPage() {
       }
 
       const token = localStorage.getItem("token");
-      const headers: any = { "Content-Type": "application/json" };
-      if (token) headers.Authorization = `Bearer ${token}`;
+      
+      // ✅ Verificar token antes de enviar
+      if (!token) {
+        throw new Error("SESIÓN EXPIRADA - INICIA SESIÓN NUEVAMENTE");
+      }
+
+      const headers: any = { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      };
 
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -60,7 +77,7 @@ export default function CheckoutPage() {
             id: item.id,
             nombre: item.nombre,
             precio: Number(item.precio),
-           imagen: item.imagen || null,
+            imagen: item.imagen || null,
             talla: item.talla,
             cantidad: item.cantidad
           })),
@@ -71,11 +88,20 @@ export default function CheckoutPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al crear la orden");
+      
+      // ✅ Manejar específicamente error de token
+      if (!res.ok) {
+        if (res.status === 401 || data.error?.includes('token') || data.error?.includes('Token')) {
+          localStorage.removeItem('token'); // Limpiar token inválido
+          throw new Error("TOKEN INVÁLIDO O EXPIRADO - INICIA SESIÓN NUEVAMENTE");
+        }
+        throw new Error(data.error || "Error al crear la orden");
+      }
 
       clearCart();
+      
       if (paymentMethod === "mercadopago") {
-       window.location.href = `https://link.mercadopago.com.mx/blacksboutique?order_id=${data.orderId}`;
+        window.location.href = `https://link.mercadopago.com.mx/blacksboutique?order_id=${data.orderId}`;
       } else {
         window.location.href = `/transferencia?order=${data.orderId}`;
       }
@@ -83,6 +109,11 @@ export default function CheckoutPage() {
       setError(err.message.toUpperCase());
       setLoading(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // ✅ Redirigir al login si es error de token
+      if (err.message.includes('TOKEN') || err.message.includes('SESIÓN')) {
+        setTimeout(() => router.push('/login'), 2000);
+      }
     }
   };
 
@@ -121,7 +152,7 @@ export default function CheckoutPage() {
                       placeholder=" "
                       className="peer w-full border-b border-gray-300 py-3 text-xs uppercase tracking-wider focus:outline-none focus:border-black transition-colors placeholder-transparent bg-transparent"
                     />
-                    <label className="absolute left-0 -top-3.5 text-[9px] tracking-widest text-gray-400 uppercase transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-[9px] peer-focus:text-black pointer-events-none">
+                    <label className="absolute left-0 -top-3.5 text-[9px] tracking-widest text-gray-400 uppercase transition-all peer-placeholder-shown:text-xs peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-black pointer-events-none">
                       Nombre completo
                     </label>
                   </div>
