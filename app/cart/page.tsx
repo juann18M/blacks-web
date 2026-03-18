@@ -42,6 +42,15 @@ export default function CartPage() {
   
   // Calcular ahorro total con validación
   const ahorroTotal = cart.reduce((acc, item) => {
+    const getImageSrc = (url?: string) => {
+  if (!url) return '/placeholder.jpg';
+
+  // 👉 si ya es URL completa (Cloudinary)
+  if (url.startsWith('http')) return url;
+
+  // 👉 si es local
+  return url.startsWith('/') ? url : `/${url}`;
+};
     if (item.precio_original && item.precio_original > (item.precio || 0)) {
       const precioOriginal = item.precio_original || 0;
       const precioActual = item.precio || 0;
@@ -84,12 +93,12 @@ export default function CartPage() {
                   return (
                     <div key={`${item.id}-${item.talla}`} className={`flex gap-6 pb-6 ${tieneDescuento ? 'border-b border-green-200' : 'border-b border-gray-100'}`}>
                       <div className="w-24 h-32 relative bg-gray-50">
-                        <Image 
-                          src={item.imagen || '/placeholder.jpg'} 
-                          alt={item.nombre || 'Producto'} 
-                          fill 
-                          className="object-contain p-2" 
-                        />
+                         <Image 
+    src={getImageSrc(item.imagen)} 
+    alt={item.nombre || 'Producto'} 
+    fill 
+    className="object-contain p-2" 
+  />
                       </div>
 
                       <div className="flex flex-col justify-between flex-1 py-1">
