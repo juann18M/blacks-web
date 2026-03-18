@@ -11,16 +11,16 @@ export default function Footer() {
         {/* REDES */}
         <div className="flex items-center gap-8 text-gray-500">
 
-          <a href="#" className="hover:text-black transition">
+          <a href="https://www.facebook.com/profile.php?id=61554083703130&sk=directory_intro&locale=es_LA" className="hover:text-black transition">
             <Facebook size={18} strokeWidth={1.2} />
           </a>
 
-          <a href="#" className="hover:text-black transition">
+          <a href="https://www.instagram.com/blacks_bazar/" className="hover:text-black transition">
             <Instagram size={18} strokeWidth={1.2} />
           </a>
 
           {/* TIKTOK SVG */}
-          <a href="#" className="hover:text-black transition">
+          <a href="https://www.tiktok.com/@blacks.boutique" className="hover:text-black transition">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
