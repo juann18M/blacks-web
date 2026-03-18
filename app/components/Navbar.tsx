@@ -205,8 +205,8 @@ export default function Navbar() {
               <Menu size={24} strokeWidth={1.2} />
             </button>
             <div className="hidden lg:flex items-center gap-8 text-[11px] font-bold tracking-[0.2em]">
-              <Link href="/" className="hover:opacity-50 transition-opacity">HOME</Link>
-              <Link href="/shop" className="hover:opacity-50 transition-opacity">SHOP</Link>
+              <Link href="/" className="hover:opacity-50 transition-opacity">INICIO</Link>
+              <Link href="/shop" className="hover:opacity-50 transition-opacity">TIENDA</Link>
               <Link href="/orders" className="hover:opacity-50 transition-opacity whitespace-nowrap">MIS PEDIDOS</Link>
             </div>
           </div>
