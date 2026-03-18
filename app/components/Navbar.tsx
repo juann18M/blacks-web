@@ -388,8 +388,8 @@ export default function Navbar() {
 
           <nav className="flex flex-col gap-8">
             {[
-              { label: 'HOME', href: '/' },
-              { label: 'SHOP', href: '/shop' },
+              { label: 'INICIO', href: '/' },
+              { label: 'TIENDA', href: '/shop' },
               { label: 'MIS PEDIDOS', href: '/orders' },
               { label: 'FAVORITOS', href: '/favoritos', count: favorites.length }
             ].map((link) => (
