@@ -15,38 +15,64 @@ interface EditorialProps {
   bloque3_descripcion?: string;
 }
 
+// Datos por defecto
+const DEFAULT_DATA: EditorialProps = {
+  bloque1_imagen: "/editorial1.jpg",
+  bloque1_titulo: "NUEVA TEMPORADA",
+  bloque1_descripcion: "Siluetas limpias y materiales premium diseñados para la nueva colección primavera verano.",
+  bloque2_imagen: "/editorial2.jpg",
+  bloque2_titulo: "ESTILO CONTEMPORÁNEO",
+  bloque2_descripcion: "Diseños minimalistas inspirados en la arquitectura urbana.",
+  bloque3_imagen: "/editorial3.jpg",
+  bloque3_titulo: "ELEGANCIA MODERNA",
+  bloque3_descripcion: "Prendas esenciales pensadas para el día a día."
+};
+
 export default function EditorialSection() {
-  const [editorialData, setEditorialData] = useState<EditorialProps>({
-    bloque1_imagen: "/editorial1.jpg",
-    bloque1_titulo: "NUEVA TEMPORADA",
-    bloque1_descripcion:
-      "Siluetas limpias y materiales premium diseñados para la nueva colección primavera verano.",
-    bloque2_imagen: "/editorial2.jpg",
-    bloque2_titulo: "ESTILO CONTEMPORÁNEO",
-    bloque2_descripcion:
-      "Diseños minimalistas inspirados en la arquitectura urbana.",
-    bloque3_imagen: "/editorial3.jpg",
-    bloque3_titulo: "ELEGANCIA MODERNA",
-    bloque3_descripcion:
-      "Prendas esenciales pensadas para el día a día."
+  const [editorialData, setEditorialData] = useState<EditorialProps>(DEFAULT_DATA);
+  const [imageErrors, setImageErrors] = useState({
+    bloque1: false,
+    bloque2: false,
+    bloque3: false
   });
 
-  // Polling cada 5 segundos
+  // Cargar datos al inicio
   useEffect(() => {
-    const fetchEditorial = async () => {
+    const loadData = async () => {
       try {
+        // Intentar cargar de localStorage primero
+        const cached = localStorage.getItem('editorialData');
+        if (cached) {
+          setEditorialData(JSON.parse(cached));
+        }
+
+        // Luego intentar cargar de la API
         const res = await axios.get('/api/editorial');
         setEditorialData(res.data);
+        localStorage.setItem('editorialData', JSON.stringify(res.data));
       } catch (error) {
         console.error('Error cargando datos editoriales:', error);
+        // Si hay error, mantener los datos por defecto o los del cache
       }
     };
 
-    fetchEditorial();
-    const interval = setInterval(fetchEditorial, 5000);
-
-    return () => clearInterval(interval);
+    loadData();
   }, []);
+
+  // Manejador de errores de imagen
+  const handleImageError = (bloque: 'bloque1' | 'bloque2' | 'bloque3') => {
+    setImageErrors(prev => ({ ...prev, [bloque]: true }));
+  };
+
+  // Función para obtener la URL de la imagen con fallback
+  const getImageUrl = (bloque: 'bloque1' | 'bloque2' | 'bloque3', originalUrl?: string) => {
+    if (imageErrors[bloque] || !originalUrl) {
+      // Fallback a una imagen por defecto si hay error
+      return '/placeholder.jpg'; // Asegúrate de tener esta imagen en public/
+    }
+    // Agregar timestamp para evitar caché del navegador
+    return `${originalUrl}?t=${Date.now()}`;
+  };
 
   return (
     <section className="bg-white text-black py-20 md:py-32 relative">
@@ -56,7 +82,8 @@ export default function EditorialSection() {
         <div className="grid grid-cols-2 gap-6 md:gap-16 items-center">
           <div className="flex justify-center">
             <img
-              src={editorialData.bloque1_imagen}
+              src={getImageUrl('bloque1', editorialData.bloque1_imagen)}
+              onError={() => handleImageError('bloque1')}
               className="
                 w-auto
                 max-h-[220px]
@@ -100,7 +127,8 @@ export default function EditorialSection() {
         {/* BLOQUE 2 */}
         <div className="flex flex-col items-center text-center space-y-8">
           <img
-            src={editorialData.bloque2_imagen}
+            src={getImageUrl('bloque2', editorialData.bloque2_imagen)}
+            onError={() => handleImageError('bloque2')}
             className="
               w-auto
               max-h-[230px]
@@ -169,7 +197,8 @@ export default function EditorialSection() {
 
           <div className="flex justify-center">
             <img
-              src={editorialData.bloque3_imagen}
+              src={getImageUrl('bloque3', editorialData.bloque3_imagen)}
+              onError={() => handleImageError('bloque3')}
               className="
                 w-auto
                 max-h-[220px]
